@@ -1,6 +1,6 @@
 # Streamlit Calculator
 
-A ** interactive calculator** built with Streamlit, featuring:
+An interactive calculator built with Streamlit, featuring:
 
 - Button-based operations for addition, subtraction, multiplication, division, and exponentiation
 - Dark/Light mode toggle
