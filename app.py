@@ -19,21 +19,21 @@ st.sidebar.title("Settings")
 theme = st.sidebar.radio("Choose Theme", ["Light", "Dark"])
 
 # -----------------------------------------------------------
-# CSS — scoped, theme-aware fixes
+# CSS — scoped, theme-aware fixes (avoid affecting sidebar)
 # -----------------------------------------------------------
 base_css = """
 <style>
 /* Card / container */
 .card {
     padding: 20px;
-    border-radius: 16px;
+    border-radius: 12px;
     margin-bottom: 20px;
 }
 
 /* History item */
 .history-card {
     padding: 12px;
-    border-radius: 12px;
+    border-radius: 10px;
     margin-bottom: 8px;
     font-family: monospace;
     white-space: pre;
@@ -43,29 +43,36 @@ base_css = """
 div.stButton > button {
     border-radius: 10px;
     padding: 10px 20px;
+    font-weight: 600;
 }
 
-/* Keep operator & text colors readable; avoid global label rules */
-.card .stText, .card .stNumberInput, .history-card, .card label, .card p {
+/* Ensure code/history uses readable monospace */
+.history-card code {
     color: inherit;
+    background: transparent;
+    border: none;
+    padding: 0;
 }
+
+/* Avoid global label rules that could break colors elsewhere */
 </style>
 """
 
-# Light theme — ensure main app content text is black (but keep sidebar white text)
+# Light theme — ensure main app content text is black and inputs are white
 light_css = """
 <style>
-/* Main app view container (only) - ensures labels & inputs are black in light theme */
+/* Main app view container only (not sidebar) */
 div[data-testid="stAppViewContainer"], div[data-testid="stAppViewContainer"] * {
     color: #000 !important;
 }
 
+/* Background for app */
 .stApp {
     background: #f0f2f6 !important;
     color: #000 !important;
 }
 
-/* LEFT SIDEBAR — dark background with white text */
+/* Sidebar remains dark with white text */
 section[data-testid="stSidebar"] {
     background: #1e1e1e !important;
 }
@@ -73,26 +80,38 @@ section[data-testid="stSidebar"] * {
     color: white !important;
 }
 
-/* Card visual for light mode */
-.card {
-    background: rgba(255,255,255,0.95);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+/* Inputs (number/text) in main app: white background, black text */
+div[data-testid="stAppViewContainer"] input[type="number"],
+div[data-testid="stAppViewContainer"] input[type="text"],
+div[data-testid="stAppViewContainer"] .stNumberInput input,
+div[data-testid="stAppViewContainer"] .stTextInput input {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #cfcfcf !important;
+    border-radius: 6px !important;
 }
-.history-card {
-    background: rgba(240, 240, 240, 0.95);
-    border: 1px solid #dcdcdc;
+
+/* Radio labels and form labels */
+div[data-testid="stAppViewContainer"] label,
+div[data-testid="stAppViewContainer"] .stRadio, 
+div[data-testid="stAppViewContainer"] .stRadio * {
+    color: #000 !important;
 }
+
+/* Make the calculate button clearly visible in light mode */
 div.stButton > button {
     background: linear-gradient(180deg,#4a90e2,#357ABD) !important;
-    color: white !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(53,122,189,0.18) !important;
 }
 </style>
 """
 
-# Dark theme — ensure main app content text is white
+# Dark theme — ensure main app content text is white and inputs are dark
 dark_css = """
 <style>
-/* Main app view container (only) - ensures labels & inputs are white in dark theme */
+/* Main app view container only (not sidebar) */
 div[data-testid="stAppViewContainer"], div[data-testid="stAppViewContainer"] * {
     color: #fff !important;
 }
@@ -102,7 +121,7 @@ div[data-testid="stAppViewContainer"], div[data-testid="stAppViewContainer"] * {
     color: #fff !important;
 }
 
-/* LEFT SIDEBAR — keep it dark with white text */
+/* Sidebar stays dark */
 section[data-testid="stSidebar"] {
     background: #000 !important;
 }
@@ -110,18 +129,29 @@ section[data-testid="stSidebar"] * {
     color: white !important;
 }
 
-/* Card visual for dark mode */
-.card {
-    background: rgba(20,20,20,0.55);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 5px 20px rgba(255,255,255,0.03);
+/* Inputs (number/text) in main app: dark background, white text */
+div[data-testid="stAppViewContainer"] input[type="number"],
+div[data-testid="stAppViewContainer"] input[type="text"],
+div[data-testid="stAppViewContainer"] .stNumberInput input,
+div[data-testid="stAppViewContainer"] .stTextInput input {
+    background: rgba(30,30,30,0.9) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    border-radius: 6px !important;
 }
-.history-card {
-    background: rgba(40, 40, 40, 0.6);
+
+/* Radio labels and form labels */
+div[data-testid="stAppViewContainer"] label,
+div[data-testid="stAppViewContainer"] .stRadio, 
+div[data-testid="stAppViewContainer"] .stRadio * {
+    color: #fff !important;
 }
+
+/* Button style for dark theme */
 div.stButton > button {
     background: linear-gradient(135deg, #444, #222) !important;
-    color: white !important;
+    color: #fff !important;
+    border: none !important;
 }
 </style>
 """
@@ -182,15 +212,16 @@ st.markdown("Clean, readable and aesthetic calculator with dark/light mode.")
 
 with st.form("calc_form"):
     col1, col2 = st.columns(2)
-    # use number_input with explicit format to avoid odd display
+    # use number_input with explicit format to avoid odd display and ensure text color applies
     num1 = col1.number_input("First Number", value=0.0, format="%f")
     num2 = col2.number_input("Second Number", value=0.0, format="%f")
 
-    # Use explicit Unicode plus/minus to avoid being interpreted as markdown list markers
-    # \u002B = plus sign, \u2212 = minus sign (unicode minus)
+    # Use a zero-width-space prefix to avoid any rendering quirks with leading '+' or '-' characters,
+    # but display still appears normal to the user. Map back to ASCII +/- internally.
+    ZWSP = "\u200B"
     op_labels = [
-        "\u002B (Add)",        # shows as + (Add)
-        "\u2212 (Subtract)",   # shows as − (Subtract) (unicode minus)
+        ZWSP + "+ (Add)",       # displayed as "+ (Add)"
+        ZWSP + "- (Subtract)",  # displayed as "- (Subtract)"
         "× (Multiply)",
         "÷ (Divide)",
         "^ (Power)",
@@ -202,10 +233,10 @@ with st.form("calc_form"):
         horizontal=True,
     )
 
-    # Map back to the real operator characters for calculation and display
+    # Map back to real operator characters for calculation and history
     op_map = {
-        "\u002B (Add)": "+",
-        "\u2212 (Subtract)": "-",  # map unicode minus back to ASCII minus for calc/history
+        ZWSP + "+ (Add)": "+",
+        ZWSP + "- (Subtract)": "-",
         "× (Multiply)": "×",
         "÷ (Divide)": "÷",
         "^ (Power)": "^",
@@ -256,5 +287,4 @@ if st.session_state.history:
 if st.button("Clear History"):
     st.session_state.history = []
     st.info("History cleared successfully!")
-
 
