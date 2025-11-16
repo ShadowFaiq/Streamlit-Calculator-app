@@ -197,8 +197,16 @@ st.markdown("</div>", unsafe_allow_html=True)
 # -----------------------------------------------------------
 if submit:
     result = calculate(num1, num2, op)
-    expr = f"{format_number(num1)} {op} {format_number(num2)} = {format_number(result)}"
-    st.session_state.history.append({"time": datetime.utcnow().isoformat() + "Z", "expr": expr})
+
+    # Build expression safely (escape any user-visible text to avoid HTML injection)
+    n1s = format_number(num1)
+    n2s = format_number(num2)
+    results = format_number(result) if not (isinstance(result, str) and result.startswith("Error")) else str(result)
+    expr_raw = f"{n1s} {op} {n2s} = {results}"
+
+    # store escaped expression to avoid accidental HTML rendering later
+    expr_safe = html.escape(expr_raw)
+    st.session_state.history.append({"time": datetime.utcnow().isoformat() + "Z", "expr": expr_safe})
 
     if isinstance(result, str) and result.startswith("Error"):
         st.error(result)
@@ -211,13 +219,15 @@ if submit:
 if st.session_state.history:
     st.markdown("### 📝 Calculation History")
     for entry in reversed(st.session_state.history):
-        safe = html.escape(entry["expr"])
-        st.markdown(f"<div class='history-card'><code>{safe}</code></div>", unsafe_allow_html=True)
+        # entry["expr"] is already escaped when stored; render inside code block
+        st.markdown(f"<div class='history-card'><code>{entry['expr']}</code></div>", unsafe_allow_html=True)
 
 # -----------------------------------------------------------
 # CLEAR HISTORY
 # -----------------------------------------------------------
 if st.button("Clear History"):
+    st.session_state.history = []
+    st.info("History cleared successfully!")
     st.session_state.history = []
     st.info("History cleared successfully!")
 
