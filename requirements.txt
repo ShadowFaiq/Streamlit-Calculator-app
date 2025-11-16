@@ -1,3 +1,5 @@
 streamlit
-html
-css
+altair
+pandas
+numpy
+python-dateutil
