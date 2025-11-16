@@ -1,47 +1,102 @@
 import streamlit as st
 
-# Page config
 st.set_page_config(
     page_title="🖤 Premium Calculator",
     page_icon="🧮",
     layout="centered"
 )
 
-# Sidebar theme selection
 st.sidebar.title("Settings")
 theme = st.sidebar.radio("Choose Theme", ["Light", "Dark"])
 
-# Apply safe CSS for dark mode
+base_css = """
+<style>
+
+.stApp {
+    background: linear-gradient(145deg, #e6e6e6, #ffffff);
+    padding: 20px;
+}
+
+[data-testid="stSidebar"] {
+    backdrop-filter: blur(12px);
+}
+
+/* Card for inputs */
+.card {
+    background: rgba(255, 255, 255, 0.4);
+    padding: 20px;
+    border-radius: 16px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+    margin-bottom: 20px;
+}
+
+/* Buttons */
+div.stButton > button {
+    background: linear-gradient(135deg, #4a90e2, #357ABD);
+    color: white;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 10px 20px;
+    transition: 0.2s;
+}
+div.stButton > button:hover {
+    transform: scale(1.03);
+}
+
+/* History card */
+.history-card {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.45);
+    border-radius: 12px;
+    backdrop-filter: blur(12px);
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+</style>
+"""
+
+dark_css = """
+<style>
+
+.stApp {
+    background: linear-gradient(145deg, #0f0f0f, #1A1A1A);
+    color: white;
+}
+
+.card {
+    background: rgba(25, 25, 25, 0.5);
+    box-shadow: 0 8px 20px rgba(255,255,255,0.03);
+}
+
+.history-card {
+    background: rgba(40, 40, 40, 0.5);
+}
+
+/* Inputs */
+input, .stNumberInput input {
+    background-color: #222 !important;
+    color: white !important;
+}
+
+div.stButton > button {
+    background: linear-gradient(135deg, #444, #222);
+    color: white;
+}
+
+</style>
+"""
+
+st.markdown(base_css, unsafe_allow_html=True)
 if theme == "Dark":
-    st.markdown(
-        """
-        <style>
-        /* App background and text */
-        .stApp {background-color: #1e1e1e; color: white;}
-        /* Buttons */
-        div.stButton > button {background-color: #444444; color: white; border-radius: 8px;}
-        /* Text inputs */
-        input[type="text"] {background-color: #333333; color: white; border-radius: 4px;}
-        /* Radio buttons */
-        div[role="radiogroup"] > label {color: white;}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown(dark_css, unsafe_allow_html=True)
 
-# Title
-st.title("🧮 Premium Streamlit Calculator")
-st.markdown("Interactive calculator with calculation history and dark/light mode.")
-
-# Initialize session state
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# Calculation function
 def calculate(n1, n2, op):
     try:
-        n1 = float(n1)
-        n2 = float(n2)
         if op == "+": return n1 + n2
         if op == "-": return n1 - n2
         if op == "×": return n1 * n2
@@ -50,27 +105,30 @@ def calculate(n1, n2, op):
     except:
         return "Error"
 
-# Input columns
-col1, col2 = st.columns(2)
-num1 = col1.text_input("First Number", "")
-num2 = col2.text_input("Second Number", "")
+st.markdown("<div class='card'>", unsafe_allow_html=True)
+st.title("🧮 Premium Streamlit Calculator")
+st.markdown("Aesthetic calculator with history, animations, and dark/light modes.")
 
-# Operation
+col1, col2 = st.columns(2)
+
+num1 = col1.number_input("First Number", value=0.0, step=1.0)
+num2 = col2.number_input("Second Number", value=0.0, step=1.0)
+
 op = st.radio("Select Operation", ["+", "-", "×", "÷", "^"], horizontal=True)
 
-# Calculate button
+st.markdown("</div>", unsafe_allow_html=True)
+
 if st.button("Calculate"):
     result = calculate(num1, num2, op)
     st.session_state.history.append(f"{num1} {op} {num2} = {result}")
     st.success(f"Result: {result}")
 
-# Show calculation history
 if st.session_state.history:
     st.markdown("### 📝 Calculation History")
     for item in reversed(st.session_state.history):
-        st.write(item)
+        st.markdown(f"<div class='history-card'>{item}</div>", unsafe_allow_html=True)
 
-# Clear history button
 if st.button("Clear History"):
     st.session_state.history = []
-    st.experimental_rerun()
+    st.info("History cleared! Refresh page to update.")
+
