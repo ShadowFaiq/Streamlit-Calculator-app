@@ -228,8 +228,3 @@ if st.session_state.history:
 if st.button("Clear History"):
     st.session_state.history = []
     st.info("History cleared successfully!")
-    st.session_state.history = []
-    st.info("History cleared successfully!")
-
-</body>
-</html>
