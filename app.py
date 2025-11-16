@@ -19,7 +19,7 @@ st.sidebar.title("Settings")
 theme = st.sidebar.radio("Choose Theme", ["Light", "Dark"])
 
 # -----------------------------------------------------------
-# CSS — scoped, theme-aware fixes (avoid affecting sidebar)
+# CSS — scoped, theme-aware fixes
 # -----------------------------------------------------------
 base_css = """
 <style>
@@ -44,6 +44,7 @@ div.stButton > button {
     border-radius: 10px;
     padding: 10px 20px;
     font-weight: 600;
+    cursor: pointer;
 }
 
 /* Ensure code/history uses readable monospace */
@@ -53,12 +54,11 @@ div.stButton > button {
     border: none;
     padding: 0;
 }
-
-/* Avoid global label rules that could break colors elsewhere */
 </style>
 """
 
-# Light theme — ensure main app content text is black and inputs are white
+# Light theme — ensure main app content text is black and inputs are white,
+# and make sure the Calculate button text is white and visible
 light_css = """
 <style>
 /* Main app view container only (not sidebar) */
@@ -66,18 +66,18 @@ div[data-testid="stAppViewContainer"], div[data-testid="stAppViewContainer"] * {
     color: #000 !important;
 }
 
-/* Background for app */
+/* App background */
 .stApp {
     background: #f0f2f6 !important;
     color: #000 !important;
 }
 
-/* Sidebar remains dark with white text */
+/* Sidebar: dark background with white text */
 section[data-testid="stSidebar"] {
     background: #1e1e1e !important;
 }
 section[data-testid="stSidebar"] * {
-    color: white !important;
+    color: #fff !important;
 }
 
 /* Inputs (number/text) in main app: white background, black text */
@@ -91,24 +91,31 @@ div[data-testid="stAppViewContainer"] .stTextInput input {
     border-radius: 6px !important;
 }
 
-/* Radio labels and form labels */
+/* Radio labels and form labels (main area) */
 div[data-testid="stAppViewContainer"] label,
 div[data-testid="stAppViewContainer"] .stRadio, 
 div[data-testid="stAppViewContainer"] .stRadio * {
     color: #000 !important;
 }
 
-/* Make the calculate button clearly visible in light mode */
-div.stButton > button {
+/* Make the calculate button clearly visible in light mode, ensure text is white */
+div[data-testid="stAppViewContainer"] div.stButton > button {
     background: linear-gradient(180deg,#4a90e2,#357ABD) !important;
     color: #fff !important;
     border: none !important;
     box-shadow: 0 4px 10px rgba(53,122,189,0.18) !important;
 }
+
+/* Some Streamlit themes embed text in a span inside the button; ensure it inherits */
+div[data-testid="stAppViewContainer"] div.stButton > button span,
+div[data-testid="stAppViewContainer"] div.stButton > button svg {
+    color: inherit !important;
+    fill: inherit !important;
+}
 </style>
 """
 
-# Dark theme — ensure main app content text is white and inputs are dark
+# Dark theme — ensure main app content text is white and sidebar stays white-on-dark.
 dark_css = """
 <style>
 /* Main app view container only (not sidebar) */
@@ -121,12 +128,12 @@ div[data-testid="stAppViewContainer"], div[data-testid="stAppViewContainer"] * {
     color: #fff !important;
 }
 
-/* Sidebar stays dark */
+/* Sidebar stays dark with white text */
 section[data-testid="stSidebar"] {
     background: #000 !important;
 }
 section[data-testid="stSidebar"] * {
-    color: white !important;
+    color: #fff !important;
 }
 
 /* Inputs (number/text) in main app: dark background, white text */
@@ -140,18 +147,24 @@ div[data-testid="stAppViewContainer"] .stTextInput input {
     border-radius: 6px !important;
 }
 
-/* Radio labels and form labels */
+/* Radio labels and form labels (main area) */
 div[data-testid="stAppViewContainer"] label,
 div[data-testid="stAppViewContainer"] .stRadio, 
 div[data-testid="stAppViewContainer"] .stRadio * {
     color: #fff !important;
 }
 
-/* Button style for dark theme */
-div.stButton > button {
+/* Button style for dark theme (ensure text visible) */
+div[data-testid="stAppViewContainer"] div.stButton > button {
     background: linear-gradient(135deg, #444, #222) !important;
     color: #fff !important;
     border: none !important;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.4) !important;
+}
+div[data-testid="stAppViewContainer"] div.stButton > button span,
+div[data-testid="stAppViewContainer"] div.stButton > button svg {
+    color: inherit !important;
+    fill: inherit !important;
 }
 </style>
 """
@@ -181,6 +194,7 @@ def format_number(n):
     except Exception:
         return str(n)
 
+
 def calculate(n1, n2, op):
     """Perform calculation with clear error handling."""
     try:
@@ -195,13 +209,13 @@ def calculate(n1, n2, op):
                 return "Error: Division by 0"
             return n1 / n2
         if op == "^":
-            # limit exponent size to avoid accidental huge numbers
             if abs(n2) > 1000:
                 return "Error: Exponent too large"
             return n1 ** n2
         return "Error: Unknown operator"
     except Exception as e:
         return f"Error: {e}"
+
 
 # -----------------------------------------------------------
 # UI — INPUT AREA (use a form to avoid accidental triggers)
@@ -216,12 +230,11 @@ with st.form("calc_form"):
     num1 = col1.number_input("First Number", value=0.0, format="%f")
     num2 = col2.number_input("Second Number", value=0.0, format="%f")
 
-    # Use a zero-width-space prefix to avoid any rendering quirks with leading '+' or '-' characters,
-    # but display still appears normal to the user. Map back to ASCII +/- internally.
+    # Zero-width-space trick for reliable + / - rendering but map back to ASCII +/- for calc/history
     ZWSP = "\u200B"
     op_labels = [
-        ZWSP + "+ (Add)",       # displayed as "+ (Add)"
-        ZWSP + "- (Subtract)",  # displayed as "- (Subtract)"
+        ZWSP + "+ (Add)",
+        ZWSP + "- (Subtract)",
         "× (Multiply)",
         "÷ (Divide)",
         "^ (Power)",
@@ -251,19 +264,14 @@ st.markdown("</div>", unsafe_allow_html=True)
 # -----------------------------------------------------------
 if submit:
     result = calculate(num1, num2, op)
-    # Prepare a readable expression and result
     n1s = format_number(num1)
     n2s = format_number(num2)
     results = format_number(result) if not isinstance(result, str) or not result.startswith("Error") else result
-
     expr = f"{n1s} {op} {n2s} = {results}"
-
-    # store timestamp + expression
     st.session_state.history.append(
         {"time": datetime.utcnow().isoformat() + "Z", "expr": expr}
     )
 
-    # show immediate result (use st.success for clear message)
     if isinstance(result, str) and result.startswith("Error"):
         st.error(f"{result}")
     else:
@@ -274,9 +282,7 @@ if submit:
 # -----------------------------------------------------------
 if st.session_state.history:
     st.markdown("### 📝 Calculation History")
-    # show newest first
     for entry in reversed(st.session_state.history):
-        # escape to ensure operators like + and - are rendered literally and not interpreted
         safe = html.escape(entry["expr"])
         card_html = f"<div class='history-card'><code>{safe}</code></div>"
         st.markdown(card_html, unsafe_allow_html=True)
@@ -287,4 +293,3 @@ if st.session_state.history:
 if st.button("Clear History"):
     st.session_state.history = []
     st.info("History cleared successfully!")
-
