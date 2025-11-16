@@ -76,8 +76,18 @@ div[data-testid="stAppViewContainer"], div[data-testid="stAppViewContainer"] * {
 section[data-testid="stSidebar"] {
     background: #1e1e1e !important;
 }
+/* Force all text/icons/inputs in sidebar to be white */
 section[data-testid="stSidebar"] * {
     color: #fff !important;
+    fill: #fff !important;
+}
+section[data-testid="stSidebar"] input,
+section[data-testid="stSidebar"] button,
+section[data-testid="stSidebar"] select,
+section[data-testid="stSidebar"] textarea {
+    color: #fff !important;
+    background: transparent !important;
+    border-color: rgba(255,255,255,0.06) !important;
 }
 
 /* Inputs (number/text) in main app: white background, black text */
@@ -106,7 +116,7 @@ div[data-testid="stAppViewContainer"] div.stButton > button {
     box-shadow: 0 4px 10px rgba(53,122,189,0.18) !important;
 }
 
-/* Some Streamlit themes embed text in a span inside the button; ensure it inherits */
+/* Ensure nested spans/svg inside buttons inherit color */
 div[data-testid="stAppViewContainer"] div.stButton > button span,
 div[data-testid="stAppViewContainer"] div.stButton > button svg {
     color: inherit !important;
@@ -128,11 +138,30 @@ div[data-testid="stAppViewContainer"], div[data-testid="stAppViewContainer"] * {
     color: #fff !important;
 }
 
-/* Sidebar stays dark with white text */
+/* Sidebar stays dark with white text: force all nested elements to white,
+   including inputs, spans, svg fills and placeholders. This targets more
+   internal Streamlit generated elements so text won't remain black. */
 section[data-testid="stSidebar"] {
     background: #000 !important;
 }
-section[data-testid="stSidebar"] * {
+section[data-testid="stSidebar"] *,
+section[data-testid="stSidebar"] div,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] svg,
+section[data-testid="stSidebar"] input,
+section[data-testid="stSidebar"] button,
+section[data-testid="stSidebar"] select,
+section[data-testid="stSidebar"] textarea {
+    color: #fff !important;
+    fill: #fff !important;
+    border-color: rgba(255,255,255,0.06) !important;
+    background: transparent !important;
+}
+
+/* Specifically ensure radio groups in sidebar are white */
+section[data-testid="stSidebar"] div[role="radiogroup"] * {
     color: #fff !important;
 }
 
