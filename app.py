@@ -74,30 +74,20 @@ div.stButton > button {
 </style>
 """
 
-# Function to set theme CSS
+# Function to set theme CSS with label color fixes
 def set_theme_css(theme: str):
     if theme == "Light":
-        st.markdown(LIGHT_CSS, unsafe_allow_html=True)
+        custom_css = """
+        <style>
+        /* Fix for radio labels in Light mode: make text black */
+        div[data-testid="stRadio"] label {
+            color: #000 !important;
+        }
+        </style>
+        """
+        st.markdown(LIGHT_CSS + custom_css, unsafe_allow_html=True)
     else:
         st.markdown(DARK_CSS, unsafe_allow_html=True)
-
-# Calculation logic
-def calculate(n1, n2, op):
-    try:
-        if op == "+":
-            return n1 + n2
-        elif op == "-":
-            return n1 - n2
-        elif op == "×":
-            return n1 * n2
-        elif op == "÷":
-            return n1 / n2 if n2 != 0 else "Error: Division by 0"
-        elif op == "^":
-            return n1 ** n2
-        else:
-            return "Invalid operation"
-    except Exception as e:
-        return f"Error: {e}"
 
 # Initialize session state
 if "history" not in st.session_state:
@@ -146,6 +136,8 @@ if st.session_state.history:
 
 # Clear history button
 if st.button("Clear History"):
+    st.session_state.history = []
+    st.info("History cleared successfully!")
     st.session_state.history = []
     st.info("History cleared successfully!")
 
