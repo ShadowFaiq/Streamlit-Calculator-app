@@ -148,7 +148,7 @@ num2 = col2.number_input("Second Number", value=0.0)
 # FIX: readable operator labels
 op_label = st.radio(
     "Select Operation",
-    ["+ (Add)", "- (Subtract)", "× (Multiply)", "÷ (Divide)", "^ (Power)"],
+    ["  + (Add)", "  - (Subtract)", "× (Multiply)", "÷ (Divide)", "^ (Power)"],
     horizontal=True
 )
 
