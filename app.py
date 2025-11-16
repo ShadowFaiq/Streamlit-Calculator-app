@@ -16,8 +16,10 @@ st.sidebar.title("Settings")
 theme = st.sidebar.radio("Choose Theme", ["Light", "Dark"])
 
 # -----------------------------------------------------------
-# PREMIUM + FIXED CSS (Light & Dark)
+# PREMIUM + FIXED CSS
 # -----------------------------------------------------------
+
+# LIGHT MODE FIX — make sidebar text white
 light_css = """
 <style>
 
@@ -26,23 +28,32 @@ light_css = """
     color: #000 !important;
 }
 
-h1, h2, h3, h4, h5, h6, label, p, span {
-    color: #000 !important;
+/* LEFT SIDEBAR FIX */
+section[data-testid="stSidebar"] {
+    background: #1e1e1e !important;
+}
+section[data-testid="stSidebar"] * {
+    color: white !important;
 }
 
+/* Card / container */
 .card {
-    background: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.85);
     padding: 20px;
     border-radius: 16px;
     box-shadow: 0 6px 16px rgba(0,0,0,0.1);
     margin-bottom: 20px;
 }
 
+label, h1, h2, h3, h4, p, span {
+    color: black !important;
+}
+
 .history-card {
     padding: 12px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(240, 240, 240, 0.95);
     border-radius: 12px;
-    border: 1px solid #ddd;
+    border: 1px solid #ccc;
     margin-bottom: 8px;
 }
 
@@ -56,6 +67,7 @@ div.stButton > button {
 </style>
 """
 
+# DARK MODE
 dark_css = """
 <style>
 
@@ -64,8 +76,11 @@ dark_css = """
     color: white !important;
 }
 
-h1, h2, h3, h4, h5, h6, label, p, span {
-    color: #fff !important;
+section[data-testid="stSidebar"] {
+    background: #000 !important;
+}
+section[data-testid="stSidebar"] * {
+    color: white !important;
 }
 
 .card {
@@ -94,7 +109,7 @@ div.stButton > button {
 </style>
 """
 
-# Apply correct theme
+# Apply theme CSS
 if theme == "Light":
     st.markdown(light_css, unsafe_allow_html=True)
 else:
@@ -118,20 +133,35 @@ def calculate(n1, n2, op):
     return "Error"
 
 # -----------------------------------------------------------
-# UI – INPUT AREA (Glass Card)
+# UI — INPUT AREA
 # -----------------------------------------------------------
 st.markdown("<div class='card'>", unsafe_allow_html=True)
 
 st.title("🧮 Premium Streamlit Calculator")
-st.markdown("Maths ?! aint even a problem ")
+st.markdown("Clean, readable and aesthetic calculator with dark/light mode.")
 
 col1, col2 = st.columns(2)
 
-# Number inputs show + / – buttons automatically (no CSS needed)
 num1 = col1.number_input("First Number", value=0.0)
 num2 = col2.number_input("Second Number", value=0.0)
 
-op = st.radio("Select Operation", ["+", "-", "×", "÷", "^"], horizontal=True)
+# FIX: readable operator labels
+op_label = st.radio(
+    "Select Operation",
+    ["+ (Add)", "- (Subtract)", "× (Multiply)", "÷ (Divide)", "^ (Power)"],
+    horizontal=True
+)
+
+# Map label → real operator
+op_map = {
+    "+ (Add)": "+",
+    "- (Subtract)": "-",
+    "× (Multiply)": "×",
+    "÷ (Divide)": "÷",
+    "^ (Power)": "^"
+}
+
+op = op_map[op_label]
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -144,11 +174,10 @@ if st.button("Calculate"):
     st.success(f"Result: {result}")
 
 # -----------------------------------------------------------
-# HISTORY SECTION
+# HISTORY
 # -----------------------------------------------------------
 if st.session_state.history:
     st.markdown("### 📝 Calculation History")
-
     for item in reversed(st.session_state.history):
         st.markdown(f"<div class='history-card'>{item}</div>", unsafe_allow_html=True)
 
@@ -158,5 +187,6 @@ if st.session_state.history:
 if st.button("Clear History"):
     st.session_state.history = []
     st.info("History cleared successfully!")
+
 
 
