@@ -166,7 +166,7 @@ def calculate(n1, n2, op):
 # -----------------------------------------------------------
 st.markdown("<div class='card'>", unsafe_allow_html=True)
 st.title("🧮 Premium Streamlit Calculator")
-st.markdown("Clean, readable and aesthetic calculator with dark/light mode.")
+st.markdown("Math aint even that difficult twin !")
 
 with st.form("calc_form"):
     col1, col2 = st.columns(2)
