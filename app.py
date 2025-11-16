@@ -221,8 +221,5 @@ if st.button("Clear History"):
     st.session_state.history = []
     st.info("History cleared successfully!")
 
-
-</script>
-
 </body>
 </html>
