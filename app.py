@@ -165,7 +165,7 @@ def calculate(n1, n2, op):
 # UI — INPUT AREA
 # -----------------------------------------------------------
 st.markdown("<div class='card'>", unsafe_allow_html=True)
-st.title("🧮 Premium Streamlit Calculator")
+st.title("🧮 Here's your god dayumn Calculator")
 st.markdown("Math aint even that difficult twin !")
 
 with st.form("calc_form"):
