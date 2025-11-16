@@ -1,57 +1,56 @@
 import streamlit as st
 
+# -----------------------------------------------------------
+# PAGE CONFIG
+# -----------------------------------------------------------
 st.set_page_config(
     page_title="🖤 Premium Calculator",
     page_icon="🧮",
     layout="centered"
 )
 
+# -----------------------------------------------------------
+# SIDEBAR — THEME SELECTION
+# -----------------------------------------------------------
 st.sidebar.title("Settings")
 theme = st.sidebar.radio("Choose Theme", ["Light", "Dark"])
 
-base_css = """
+# -----------------------------------------------------------
+# PREMIUM + FIXED CSS (Light & Dark)
+# -----------------------------------------------------------
+light_css = """
 <style>
 
 .stApp {
-    background: linear-gradient(145deg, #e6e6e6, #ffffff);
-    padding: 20px;
+    background: #f0f2f6 !important;
+    color: #000 !important;
 }
 
-[data-testid="stSidebar"] {
-    backdrop-filter: blur(12px);
+h1, h2, h3, h4, h5, h6, label, p, span {
+    color: #000 !important;
 }
 
-/* Card for inputs */
 .card {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255,255,255,0.8);
     padding: 20px;
     border-radius: 16px;
-    backdrop-filter: blur(15px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
     margin-bottom: 20px;
 }
 
-/* Buttons */
-div.stButton > button {
-    background: linear-gradient(135deg, #4a90e2, #357ABD);
-    color: white;
-    font-weight: bold;
-    border-radius: 10px;
-    padding: 10px 20px;
-    transition: 0.2s;
-}
-div.stButton > button:hover {
-    transform: scale(1.03);
-}
-
-/* History card */
 .history-card {
     padding: 12px;
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
-    backdrop-filter: blur(12px);
+    border: 1px solid #ddd;
     margin-bottom: 8px;
-    font-size: 16px;
+}
+
+div.stButton > button {
+    background: #4a90e2 !important;
+    color: white !important;
+    border-radius: 10px;
+    padding: 10px 20px;
 }
 
 </style>
@@ -61,74 +60,103 @@ dark_css = """
 <style>
 
 .stApp {
-    background: linear-gradient(145deg, #0f0f0f, #1A1A1A);
-    color: white;
-}
-
-.card {
-    background: rgba(25, 25, 25, 0.5);
-    box-shadow: 0 8px 20px rgba(255,255,255,0.03);
-}
-
-.history-card {
-    background: rgba(40, 40, 40, 0.5);
-}
-
-/* Inputs */
-input, .stNumberInput input {
-    background-color: #222 !important;
+    background: linear-gradient(145deg, #0f0f0f, #1A1A1A) !important;
     color: white !important;
 }
 
+h1, h2, h3, h4, h5, h6, label, p, span {
+    color: #fff !important;
+}
+
+.card {
+    background: rgba(20,20,20,0.55);
+    backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 5px 20px rgba(255,255,255,0.04);
+    margin-bottom: 20px;
+}
+
+.history-card {
+    padding: 12px;
+    background: rgba(40, 40, 40, 0.6);
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
 div.stButton > button {
-    background: linear-gradient(135deg, #444, #222);
-    color: white;
+    background: linear-gradient(135deg, #444, #222) !important;
+    color: white !important;
+    border-radius: 10px;
+    padding: 10px 20px;
 }
 
 </style>
 """
 
-st.markdown(base_css, unsafe_allow_html=True)
-if theme == "Dark":
+# Apply correct theme
+if theme == "Light":
+    st.markdown(light_css, unsafe_allow_html=True)
+else:
     st.markdown(dark_css, unsafe_allow_html=True)
 
+# -----------------------------------------------------------
+# SESSION STATE
+# -----------------------------------------------------------
 if "history" not in st.session_state:
     st.session_state.history = []
 
+# -----------------------------------------------------------
+# CALCULATION FUNCTION
+# -----------------------------------------------------------
 def calculate(n1, n2, op):
-    try:
-        if op == "+": return n1 + n2
-        if op == "-": return n1 - n2
-        if op == "×": return n1 * n2
-        if op == "÷": return n1 / n2 if n2 != 0 else "Error: Division by 0"
-        if op == "^": return n1 ** n2
-    except:
-        return "Error"
+    if op == "+": return n1 + n2
+    if op == "-": return n1 - n2
+    if op == "×": return n1 * n2
+    if op == "÷": return n2 and n1 / n2 or "Error: Division by 0"
+    if op == "^": return n1 ** n2
+    return "Error"
 
+# -----------------------------------------------------------
+# UI – INPUT AREA (Glass Card)
+# -----------------------------------------------------------
 st.markdown("<div class='card'>", unsafe_allow_html=True)
+
 st.title("🧮 Premium Streamlit Calculator")
-st.markdown("Aesthetic calculator with history, animations, and dark/light modes.")
+st.markdown("Maths ?! aint even a problem ")
 
 col1, col2 = st.columns(2)
 
-num1 = col1.number_input("First Number", value=0.0, step=1.0)
-num2 = col2.number_input("Second Number", value=0.0, step=1.0)
+# Number inputs show + / – buttons automatically (no CSS needed)
+num1 = col1.number_input("First Number", value=0.0)
+num2 = col2.number_input("Second Number", value=0.0)
 
 op = st.radio("Select Operation", ["+", "-", "×", "÷", "^"], horizontal=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
 
+# -----------------------------------------------------------
+# CALCULATE
+# -----------------------------------------------------------
 if st.button("Calculate"):
     result = calculate(num1, num2, op)
     st.session_state.history.append(f"{num1} {op} {num2} = {result}")
     st.success(f"Result: {result}")
 
+# -----------------------------------------------------------
+# HISTORY SECTION
+# -----------------------------------------------------------
 if st.session_state.history:
     st.markdown("### 📝 Calculation History")
+
     for item in reversed(st.session_state.history):
         st.markdown(f"<div class='history-card'>{item}</div>", unsafe_allow_html=True)
 
+# -----------------------------------------------------------
+# CLEAR HISTORY
+# -----------------------------------------------------------
 if st.button("Clear History"):
     st.session_state.history = []
-    st.info("History cleared! Refresh page to update.")
+    st.info("History cleared successfully!")
+
 
